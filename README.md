@@ -48,10 +48,14 @@ cd PI-5SM-BACK
 # Suba o banco de dados
 docker compose up -d
 
-# Rode a aplicação
-./mvnw spring-boot:run
-ou
+#Baixar o JDK 21 caso não tenha
+winget install EclipseAdoptium.Temurin.21.JDK
+
+#Baixar dependencias Maven
 mvnw clean install
+
+# Rode a aplicação
+mvnw spring-boot:run
 ```
 
 A API estará disponível em: `http://localhost:8080`
