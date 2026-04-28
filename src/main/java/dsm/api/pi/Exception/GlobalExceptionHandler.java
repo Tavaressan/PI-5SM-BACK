@@ -7,12 +7,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.HttpMediaTypeNotAcceptableException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.AuthenticationException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -190,6 +193,42 @@ public class GlobalExceptionHandler {
                         .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
                         .error("Erro Interno")
                         .message("Ocorreu um erro inesperado. Tente novamente mais tarde.")
+                        .path(request.getRequestURI())
+                        .timestamp(LocalDateTime.now())
+                        .build()
+        );
+    }
+
+    // 401 - Não autenticado (token inválido, ausente ou credenciais erradas)
+    @ExceptionHandler({AuthenticationException.class, BadCredentialsException.class})
+    public ResponseEntity<ErrorResponse> handleAuthenticationException(
+            AuthenticationException ex, HttpServletRequest request) {
+
+        log.warn("Falha de autenticação em {}: {}", request.getRequestURI(), ex.getMessage());
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
+                ErrorResponse.builder()
+                        .status(HttpStatus.UNAUTHORIZED.value())
+                        .error("Não Autorizado")
+                        .message("Usuário inexistente ou senha inválida.")
+                        .path(request.getRequestURI())
+                        .timestamp(LocalDateTime.now())
+                        .build()
+        );
+    }
+
+    // 403 - Autenticado, mas sem permissão
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleAccessDeniedException(
+            AccessDeniedException ex, HttpServletRequest request) {
+
+        log.warn("Acesso negado em {}: {}", request.getRequestURI(), ex.getMessage());
+
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
+                ErrorResponse.builder()
+                        .status(HttpStatus.FORBIDDEN.value())
+                        .error("Acesso Negado")
+                        .message("Você não tem permissão para acessar este recurso.")
                         .path(request.getRequestURI())
                         .timestamp(LocalDateTime.now())
                         .build()
