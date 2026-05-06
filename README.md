@@ -48,7 +48,7 @@ cd PI-5SM-BACK
 # Suba o banco de dados
 docker compose up -d
 
-#Baixar o JDK 21 caso não tenha
+#Baixar o JDK 21 caso não tenha (Após isso recomendo fechar e abrir o cmd novamente)
 winget install EclipseAdoptium.Temurin.21.JDK
 
 #Baixar dependencias Maven
